@@ -103,3 +103,41 @@ exports.adminSearchProduct = async (req, res, next) => {
     return next(err);
   }
 };
+
+// Set role Client
+exports.fetchClients = async (req, res, next) => {
+  try {
+    const user = await User.find();
+    const clients = user.filter((user) => user.role === "client");
+    res.status(200).send(clients);
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+    return next(err);
+  }
+};
+
+exports.fetchOrders = async (req, res, next) => {
+  try {
+    const orders = await Order.find();
+    let earning = 0;
+    for (let i = 0; i < orders.length; i++) {
+      earning += orders[i].totalBill;
+    }
+    res.statusCode(200).json({ earning: earning, orders: orders });
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+    return next(err);
+  }
+};
+
+// New Product
+exports.addNewProduct = async (req, res, next) => {
+  const { productName, category, price, shortDesc, longDesc, quantity } =
+    req.body;
+  const images = res.files;
+  console.log(images);
+};
