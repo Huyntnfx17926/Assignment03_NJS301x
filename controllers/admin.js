@@ -4,6 +4,7 @@ const Order = require("../models/order");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const product = require("../models/product");
+const Session = require("../models/session");
 const cloudinary = require("cloudinary").v2;
 
 // Thư viện Lưu Trữ Ảnh
@@ -139,5 +140,118 @@ exports.addNewProduct = async (req, res, next) => {
   const { productName, category, price, shortDesc, longDesc, quantity } =
     req.body;
   const images = res.files;
-  console.log(images);
+  console.log("Load img: ", images);
+  try {
+    let imgPaths = [];
+    // Push image lên cloud
+    for (let image of images) {
+      const result = await cloudinary.uploader.upload(image.path);
+      imgPaths.push(result.secure_url);
+    }
+    console.log("Push IMG:", imgPaths);
+    const product = new Product({
+      name: productName,
+      category: category,
+      img1: imgPaths[0],
+      img2: imgPaths[1],
+      img3: imgPaths[2],
+      img4: imgPaths[3],
+      long_desc: longDesc,
+      short_desc: shortDesc,
+      price: price,
+      quantity: quantity,
+    });
+    const response = await product.save();
+    res.status(200).json({ msg: "New Product added!" });
+    console.log("New Product ", response);
+    console.log("New Product status ", res);
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+    return next(err);
+  }
+};
+
+exports.postEditProduct = async (req, res, next) => {
+  const { name, category, price, shortDesc, longDesc, quantity } = req.body;
+  const id = req.params.prodId;
+  console.log("Id Edit ", id);
+
+  try {
+    const product = await Product.findById(id);
+    if (name) {
+      product.name = name;
+    }
+    if (category) {
+      product.category = category;
+    }
+    if (price) {
+      product.price = price;
+    }
+    if (shortDesc) {
+      product.short_desc = shortDesc;
+    }
+    if (longDesc) {
+      product.long_desc = longDesc;
+    }
+    if (quantity) {
+      product.quantity = quantity;
+    }
+
+    const response = await product.save();
+    res.status(200).json({ msg: "Successfully update product", prod: product });
+    console.log("Edit ~!~ ", response);
+    console.log("Edit status ", res);
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+    return next(err);
+  }
+};
+
+exports.postDeleteProduct = async (req, res, next) => {
+  const id = req.params.prodId;
+
+  try {
+    // Set Id rồi Delete!!
+    const product = await Product.findById(id);
+    const response = await product.remove();
+    res.status(200).json({ msg: "Product deleted!" });
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+    return next(err);
+  }
+};
+
+exports.postImages = async (req, res, next) => {
+  console.log(req.body);
+};
+
+exports.getAllChatRooms = async (req, res, next) => {
+  try {
+    const chatRooms = await Session.find();
+    res.status(200).send(chatRooms);
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+  }
+};
+
+exports.getChatRoomId = async (req, res, next) => {
+  const roomId = req.query.roomId;
+  console.log("Chat Room ID: ", roomId);
+  try {
+    const chatRoom = await Session.findById(roomId);
+    res.status(200).send(chatRoom);
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+    return next(err);
+  }
 };

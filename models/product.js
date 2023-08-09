@@ -34,7 +34,7 @@ const productSchema = new Schema({
     type: String,
     require: true,
   },
-  quamtity: {
+  quantity: {
     type: Number,
     require: true,
   },
