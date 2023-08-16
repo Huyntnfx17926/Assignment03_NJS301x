@@ -173,6 +173,20 @@ exports.addNewProduct = async (req, res, next) => {
   }
 };
 
+exports.fetchEditProduct = async (req, res, next) => {
+  const id = req.params.prodId;
+
+  try {
+    const product = await Product.findById(id);
+    res.status(200).send(product);
+  } catch (error) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+    return next(err);
+  }
+};
+
 exports.postEditProduct = async (req, res, next) => {
   const { name, category, price, shortDesc, longDesc, quantity } = req.body;
   const id = req.params.prodId;
